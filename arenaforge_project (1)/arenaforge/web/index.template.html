@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ArenaForge: esports tournament builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F1F2FA; --surface:#FFFFFF; --surface-2:#E9EBF7; --ink:#131A33; --ink-2:#4B5578; --line:#D6DAEE;
+  --primary:#5B3FF5; --primary-ink:#FFFFFF; --primary-soft:#E8E4FF;
+  --gold:#F5B71A; --gold-ink:#3B2A00; --gold-soft:#FFF0C7;
+  --ok:#0E8F72; --ok-soft:#D9F5EC; --bad:#C92E4E; --bad-soft:#FDE3E9;
+  --head-bg:rgba(241,242,250,.94);
+  --f-display:"Chakra Petch","Rajdhani","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0C1024; --surface:#151B38; --surface-2:#1D2547; --ink:#EEF0FF; --ink-2:#9AA3CC; --line:#2B3562;
+    --primary:#8F7BFF; --primary-ink:#0C1024; --primary-soft:#2A2559;
+    --gold:#FFC94A; --gold-ink:#241A00; --gold-soft:#3A3010;
+    --ok:#2DD4A8; --ok-soft:#0F3A33; --bad:#FF6B88; --bad-soft:#44192A;
+    --head-bg:rgba(12,16,36,.94);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0C1024; --surface:#151B38; --surface-2:#1D2547; --ink:#EEF0FF; --ink-2:#9AA3CC; --line:#2B3562;
+  --primary:#8F7BFF; --primary-ink:#0C1024; --primary-soft:#2A2559;
+  --gold:#FFC94A; --gold-ink:#241A00; --gold-soft:#3A3010;
+  --ok:#2DD4A8; --ok-soft:#0F3A33; --bad:#FF6B88; --bad-soft:#44192A;
+  --head-bg:rgba(12,16,36,.94);
+  color-scheme: dark;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin:0; background:var(--bg); color:var(--ink); font:400 15px/1.5 var(--f-body); -webkit-text-size-adjust:100%; }
+body::before { content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top, 0px); z-index:30; background:var(--head-bg); }
+h1,h2,h3,h4 { font-family:var(--f-display); font-weight:700; margin:0; letter-spacing:.005em; line-height:1.15; }
+h2 { font-size:26px; } h3 { font-size:18px; } h4 { font-size:15px; }
+p { margin:0; }
+button, input, select { font:inherit; color:inherit; }
+button { cursor:pointer; }
+:focus-visible { outline:2px solid var(--primary); outline-offset:2px; border-radius:4px; }
+.num { font-family:var(--f-display); font-variant-numeric:tabular-nums; }
+.muted { color:var(--ink-2); }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ---------- header ---------- */
+.top { position:sticky; top:env(safe-area-inset-top, 0px); z-index:20; background:var(--head-bg); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+.top-in { max-width:1240px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:14px 16px; flex-wrap:wrap; }
+.brand { display:flex; align-items:center; gap:10px; font:700 22px/1 var(--f-display); letter-spacing:.01em; margin-right:6px; }
+.brand svg { width:30px; height:30px; flex:none; }
+nav.tabs { display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; flex:0 1 auto; min-width:0; }
+nav.tabs::-webkit-scrollbar { display:none; }
+nav.tabs button { background:none; border:0; padding:9px 14px; font:600 15px var(--f-display); color:var(--ink-2); border-bottom:3px solid transparent; white-space:nowrap; }
+nav.tabs button:hover { color:var(--ink); }
+nav.tabs button[aria-current="page"] { color:var(--ink); border-bottom-color:var(--primary); }
+.tools { display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap; }
+.search { display:flex; }
+.search input { width:150px; padding:7px 10px; border:1px solid var(--line); background:var(--surface); border-radius:8px 0 0 8px; }
+.search button { padding:7px 12px; border:1px solid var(--line); border-left:0; background:var(--surface-2); border-radius:0 8px 8px 0; font-weight:600; }
+.switch { display:flex; align-items:center; gap:8px; background:none; border:1px solid var(--line); border-radius:999px; padding:5px 12px 5px 6px; font-weight:600; font-size:14px; background:var(--surface); }
+.switch .knob { width:30px; height:18px; border-radius:999px; background:var(--line); position:relative; transition:background .15s; }
+.switch .knob::after { content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:var(--surface); transition:transform .15s; box-shadow:0 1px 2px rgba(0,0,0,.3); }
+.switch[aria-checked="true"] .knob { background:var(--primary); }
+.switch[aria-checked="true"] .knob::after { transform:translateX(12px); }
+details.menu { position:relative; }
+details.menu > summary { list-style:none; cursor:pointer; border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:7px 12px; font-weight:600; }
+details.menu > summary::-webkit-details-marker { display:none; }
+details.menu .pop { position:absolute; right:0; top:calc(100% + 6px); z-index:25; min-width:230px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px; box-shadow:0 12px 32px rgba(10,14,40,.22); display:grid; }
+details.menu .pop button { text-align:left; background:none; border:0; padding:9px 10px; border-radius:6px; font-weight:500; }
+details.menu .pop button:hover { background:var(--surface-2); }
+details.menu .pop .hint { padding:6px 10px 8px; font-size:13px; color:var(--ink-2); }
+.notice { background:var(--gold-soft); color:var(--ink); border-bottom:1px solid var(--line); }
+.notice div { max-width:1240px; margin:0 auto; padding:8px 20px; font-size:14px; }
+
+/* ---------- layout ---------- */
+main { max-width:1240px; margin:0 auto; padding:26px 20px 90px; }
+.view[hidden] { display:none; }
+.cols { display:grid; grid-template-columns:minmax(290px,360px) minmax(0,1fr); gap:34px; align-items:start; }
+@media (max-width:900px) { .cols { grid-template-columns:1fr; } .search input { width:140px; } }
+.stack { display:grid; gap:26px; }
+.panel { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px; }
+.panel h3 { margin-bottom:12px; }
+.sect { margin-top:34px; }
+.sect > h3 { margin-bottom:12px; }
+.sect > .lead { margin:-6px 0 14px; color:var(--ink-2); max-width:70ch; }
+form.f { display:grid; gap:10px; }
+label.fld { display:grid; gap:4px; font-weight:600; font-size:14px; }
+label.fld input, label.fld select, .in { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); font-weight:400; }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.btn { background:var(--primary); color:var(--primary-ink); border:0; border-radius:8px; padding:10px 16px; font:600 15px var(--f-body); }
+.btn:hover { filter:brightness(1.08); }
+.btn:disabled { opacity:.45; cursor:not-allowed; filter:none; }
+.btn.alt { background:var(--surface-2); color:var(--ink); }
+.btn.sm { padding:6px 11px; font-size:14px; }
+.btn.gold { background:var(--gold); color:var(--gold-ink); }
+.link { background:none; border:0; padding:0; color:var(--primary); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.empty { border:1.5px dashed var(--line); border-radius:12px; padding:30px 24px; display:grid; gap:12px; justify-items:start; }
+.empty h3 { font-size:20px; }
+.empty p { color:var(--ink-2); max-width:56ch; }
+.note { color:var(--ink-2); font-size:14px; max-width:72ch; }
+fieldset { border:0; padding:0; margin:0; display:grid; gap:8px; min-width:0; }
+legend { font-weight:600; font-size:14px; padding:0; margin-bottom:6px; }
+.fmtopt { display:grid; gap:2px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); cursor:pointer; position:relative; }
+.fmtopt input { position:absolute; opacity:0; }
+.fmtopt .fn { font:600 15px var(--f-display); }
+.fmtopt .fd { font-size:13px; color:var(--ink-2); }
+.fmtopt:has(input:checked) { border-color:var(--primary); background:var(--primary-soft); box-shadow:inset 3px 0 0 var(--primary); }
+.fmtopt:has(input:focus-visible) { outline:2px solid var(--primary); outline-offset:2px; }
+
+/* ---------- teams ---------- */
+.teamgrid .empty { grid-column:1 / -1; }
+.teamgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:0 28px; }
+.team { padding:16px 0 18px; border-top:1px solid var(--line); display:grid; gap:10px; align-content:start; }
+.team-h { display:flex; justify-content:space-between; align-items:start; gap:10px; }
+.team-n { font:700 18px/1.15 var(--f-display); overflow-wrap:anywhere; }
+.team-g { font-size:13px; color:var(--ink-2); }
+.team-r { text-align:right; }
+.team-r .num { font-size:24px; font-weight:700; line-height:1; }
+.team-r small { display:block; font-size:12px; color:var(--ink-2); margin-top:3px; }
+.roster { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px; }
+.roster li, .chip { display:inline-flex; align-items:center; gap:4px; background:var(--surface-2); border-radius:999px; padding:3px 4px 3px 11px; font-size:14px; font-weight:500; }
+.chip { padding:3px 11px; }
+.roster .x { background:none; border:0; width:22px; height:22px; border-radius:50%; line-height:1; color:var(--ink-2); font-size:16px; }
+.roster .x:hover { background:var(--bad-soft); color:var(--bad); }
+.addrow { display:flex; gap:6px; }
+.addrow select { flex:1; min-width:0; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); }
+.tag { display:inline-block; font-size:12px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-2); }
+.tag.full { background:var(--ok-soft); color:var(--ok); }
+.tag.live { background:var(--primary-soft); color:var(--primary); }
+.tag.done { background:var(--gold-soft); color:var(--ink); }
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+
+/* ---------- tournaments ---------- */
+.trow { display:grid; grid-template-columns:1fr auto; gap:2px 12px; width:100%; text-align:left; background:none; border:0; border-top:1px solid var(--line); padding:12px 8px 12px 12px; position:relative; }
+.trow:hover { background:var(--surface-2); }
+.trow.on { background:var(--primary-soft); box-shadow:inset 3px 0 0 var(--primary); }
+.trow .tn { font:700 16px var(--f-display); }
+.trow .tm { grid-column:1; font-size:13px; color:var(--ink-2); }
+.trow .tag { grid-row:1 / span 2; grid-column:2; align-self:center; }
+.list { list-style:none; margin:0; padding:0; }
+.list > li { display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid var(--line); }
+.list > li:first-child { border-top:0; }
+.list .grow { flex:1; min-width:0; }
+.list .nm { font:600 15px var(--f-display); overflow-wrap:anywhere; }
+.list .pos { width:26px; height:26px; border-radius:50%; background:var(--surface-2); display:grid; place-items:center; font:700 13px var(--f-display); flex:none; }
+.two { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:26px 34px; }
+.two > div > h4 { margin-bottom:6px; }
+
+/* ---------- matches page ---------- */
+.mhead { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px 24px; align-items:end; margin-bottom:18px; }
+.mhead p { color:var(--ink-2); max-width:62ch; margin-top:4px; }
+.champ { display:flex; align-items:center; gap:16px; padding:16px 20px; background:var(--gold-soft); border-left:6px solid var(--gold); margin-bottom:22px; clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%); }
+.champ svg { width:40px; height:40px; flex:none; color:var(--gold); }
+.champ .cl { font-size:13px; color:var(--ink-2); font-weight:600; }
+.champ .cn { font:700 28px/1.1 var(--f-display); }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 6px; }
+.toolbar .note { margin-left:6px; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:14px; }
+.tile { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--primary); border-radius:10px; padding:12px 14px; display:grid; gap:10px; }
+.tile.flash { animation:flash 1.1s ease-out; }
+@keyframes flash { 0% { box-shadow:0 0 0 4px var(--primary); } 100% { box-shadow:0 0 0 0 transparent; } }
+.tmeta { font-size:13px; color:var(--ink-2); font-weight:600; }
+.tsides { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:end; }
+.side { display:grid; gap:4px; }
+.side .sname { font:600 14px/1.2 var(--f-display); overflow-wrap:anywhere; }
+.side input { width:100%; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); font:700 18px var(--f-display); text-align:center; }
+.vs { color:var(--ink-2); font-size:13px; padding-bottom:10px; }
+.bracket-wrap { overflow:auto; padding:6px 4px 14px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:linear-gradient(var(--bg),var(--bg)); }
+.bracket { position:relative; margin:14px 12px 4px; }
+.bracket svg.wires { position:absolute; inset:0; pointer-events:none; overflow:visible; }
+.bracket svg.wires path { fill:none; stroke:var(--line); stroke-width:2; }
+.bracket svg.wires path.hot { stroke:var(--gold); }
+.rlabel { position:absolute; top:0; font:600 13px var(--f-display); color:var(--ink-2); }
+.mcard { position:absolute; background:var(--line); clip-path:polygon(0 0,calc(100% - 15px) 0,100% 15px,100% 100%,15px 100%,0 calc(100% - 15px)); }
+.mcard.live { background:var(--primary); cursor:pointer; }
+.mcard.live:hover { filter:brightness(1.12); }
+.mcard.live .in2 { margin:2px; height:calc(100% - 4px); }
+.mcard.bye { opacity:.7; }
+.mcard .in2 { margin:1px; background:var(--surface); clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px)); height:calc(100% - 2px); display:grid; grid-template-rows:1fr 1fr auto; }
+.trow2 { display:grid; grid-template-columns:22px minmax(0,1fr) 34px; align-items:center; gap:4px; padding:0 8px 0 6px; border-left:4px solid transparent; font:600 14px var(--f-display); }
+.trow2 + .trow2 { border-top:1px solid var(--line); }
+.trow2 .sd { font-size:11px; color:var(--ink-2); text-align:center; }
+.trow2 .nmx { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.trow2 .sx { text-align:right; font-weight:700; }
+.trow2.win { background:var(--gold-soft); border-left-color:var(--gold); }
+.trow2.lose { color:var(--ink-2); }
+.trow2.tbd .nmx { color:var(--ink-2); font-weight:500; font-style:italic; }
+.trow2.tbd { background:repeating-linear-gradient(135deg,transparent 0 6px,var(--surface-2) 6px 7px); }
+.mfoot { font:500 11px var(--f-body); color:var(--ink-2); padding:2px 8px 4px 10px; display:flex; justify-content:space-between; }
+.mfoot b { color:var(--primary); font-weight:700; }
+table.t { width:100%; border-collapse:collapse; font-size:15px; }
+table.t th { text-align:left; font-weight:600; font-size:13px; color:var(--ink-2); padding:8px 10px; border-bottom:2px solid var(--line); white-space:nowrap; }
+table.t td { padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+table.t td.r, table.t th.r { text-align:right; }
+table.t td.tn { font:600 15px var(--f-display); }
+table.t tr.first td { background:var(--gold-soft); }
+.tscroll { overflow-x:auto; }
+table.t .rk { width:1%; white-space:nowrap; }
+.cslot { position:absolute; height:56px; padding:6px 14px; display:grid; align-content:center; gap:1px; background:repeating-linear-gradient(135deg,transparent 0 6px,var(--surface-2) 6px 7px); color:var(--ink-2); clip-path:polygon(0 0,calc(100% - 15px) 0,100% 15px,100% 100%,15px 100%,0 calc(100% - 15px)); border-left:4px solid var(--line); }
+.cslot .cl { font:600 12px var(--f-body); }
+.cslot .cn { font:700 17px var(--f-display); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cslot.on { background:var(--gold-soft); color:var(--ink); border-left-color:var(--gold); }
+.bar { height:8px; border-radius:4px; background:var(--surface-2); min-width:90px; }
+.bar i { display:block; height:100%; border-radius:4px; background:var(--primary); }
+.seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--surface); }
+.seg button { background:none; border:0; padding:7px 14px; font-weight:600; font-size:14px; }
+.seg button[aria-pressed="true"] { background:var(--primary); color:var(--primary-ink); }
+.mlist { display:grid; gap:18px 30px; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+.mlist h4 { margin-bottom:4px; }
+.mrow { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; padding:7px 0; border-top:1px solid var(--line); font:500 14px var(--f-display); }
+.mrow .a { text-align:right; } .mrow .b { text-align:left; }
+.mrow .w { font-weight:700; }
+.mrow .l { color:var(--ink-2); }
+.mrow .sc { font-weight:700; min-width:58px; text-align:center; }
+.mrow .pend { color:var(--ink-2); font-weight:500; font-size:13px; text-align:center; min-width:58px; }
+details.dd { border-top:1px solid var(--line); }
+details.dd:last-of-type { border-bottom:1px solid var(--line); }
+details.dd > summary { cursor:pointer; list-style:none; padding:14px 2px; display:flex; justify-content:space-between; gap:12px; font:700 17px var(--f-display); }
+details.dd > summary::-webkit-details-marker { display:none; }
+details.dd > summary::after { content:"+"; font:600 20px var(--f-display); color:var(--primary); }
+details.dd[open] > summary::after { content:"\2212"; }
+details.dd > summary small { font:400 14px var(--f-body); color:var(--ink-2); margin-right:auto; align-self:center; }
+details.dd > .dd-body { padding:2px 2px 22px; display:grid; gap:14px; }
+svg.graph { max-width:100%; height:auto; }
+svg.graph line { stroke:var(--line); stroke-width:1.2; }
+svg.graph circle { stroke:var(--surface); stroke-width:2; }
+svg.graph text { font:700 10px var(--f-display); fill:#fff; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+.slots { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px 24px; }
+.slots h4 { font-size:14px; color:var(--ink-2); margin-bottom:2px; }
+.slots div > p { font:500 14px var(--f-display); padding:3px 0; border-top:1px solid var(--line); }
+.pre { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px; font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow:auto; max-height:260px; white-space:pre; margin:0; }
+.badge-r { color:var(--bad); font-weight:600; }
+
+/* ---------- toasts / popover ---------- */
+#toasts { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(18px + env(safe-area-inset-bottom, 0px)); z-index:40; display:grid; gap:8px; width:min(560px,calc(100vw - 24px)); pointer-events:none; }
+.toast { pointer-events:auto; background:var(--ink); color:var(--bg); border-radius:10px; padding:11px 14px; box-shadow:0 10px 30px rgba(0,0,0,.3); font-size:14.5px; display:grid; gap:2px; border-left:5px solid var(--ok); }
+.toast.error { border-left-color:var(--bad); }
+.toast b { font:700 14px var(--f-display); }
+#found { position:fixed; right:20px; top:calc(70px + env(safe-area-inset-top, 0px)); z-index:35; width:min(360px,calc(100vw - 24px)); background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:0 14px 36px rgba(10,14,40,.25); display:grid; gap:8px; }
+#found[hidden] { display:none; }
+#found .hd { display:flex; justify-content:space-between; align-items:center; }
+.fatal { border:1.5px solid var(--bad); background:var(--bad-soft); border-radius:12px; padding:20px; display:grid; gap:8px; }
+@media (max-width:700px) { .top { position:static; } .search input { width:120px; } main { padding-top:20px; } h2 { font-size:23px; } }
+@media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 4h13l4 4v4H2z" fill="#5B3FF5"/><path d="M2 20h13l4 4v4H2z" fill="#5B3FF5"/><path d="M19 10h3v12h-3" fill="none" stroke="#F5B71A" stroke-width="2.4"/><path d="M22 16h8" stroke="#F5B71A" stroke-width="2.4"/></svg>
+      <span>ArenaForge</span>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Sections">
+      <button data-view="teams">Teams</button>
+      <button data-view="tournaments">Tournaments</button>
+      <button data-view="matches" id="tabMatches">Bracket</button>
+      <button data-view="rankings">Rankings</button>
+      <button data-view="engine">Engine</button>
+    </nav>
+    <div class="tools">
+      <form class="search" id="searchForm" role="search">
+        <label class="sr" for="q">Find a team or player by exact name or gamer tag</label>
+        <input id="q" type="search" placeholder="Find team or gamer tag" autocomplete="off">
+        <button type="submit">Find</button>
+      </form>
+      <button class="switch" id="adminSwitch" role="switch" aria-checked="true"><span class="knob"></span><span id="adminLabel">Admin</span></button>
+      <details class="menu" id="menu">
+        <summary>Backup</summary>
+        <div class="pop">
+          <button id="btnExport" type="button">Export backup file</button>
+          <button id="btnImport" type="button">Import backup file</button>
+          <button id="btnReset" type="button">Clear workspace</button>
+          <p class="hint">Changes save in this browser automatically.</p>
+        </div>
+      </details>
+      <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    </div>
+  </div>
+</header>
+<div class="notice" id="notice" hidden><div>You are viewing as a player. Creating tournaments, registering teams and entering results need admin mode.</div></div>
+<aside id="found" hidden aria-live="polite"></aside>
+
+<main id="app">
+  <div id="fatal" hidden></div>
+
+  <!-- ===================== TEAMS ===================== -->
+  <section class="view" id="v-teams">
+    <div class="cols">
+      <div class="stack">
+        <div class="panel">
+          <h3>Register a player</h3>
+          <form class="f" id="playerForm">
+            <label class="fld">Full name<input name="name" required autocomplete="off"></label>
+            <label class="fld">Email<input name="email" type="text" inputmode="email" required autocomplete="off"></label>
+            <label class="fld">Gamer tag<input name="tag" required autocomplete="off"></label>
+            <button class="btn" type="submit">Register player</button>
+          </form>
+        </div>
+        <div class="panel">
+          <h3>Create a team</h3>
+          <form class="f" id="teamForm">
+            <label class="fld">Team name<input name="name" required autocomplete="off"></label>
+            <div class="row2" style="grid-template-columns:1.7fr 1fr">
+              <label class="fld">Game<select name="game" data-games></select></label>
+              <label class="fld">Start rating<input name="rating" type="number" min="100" max="4000" value="1000"></label>
+            </div>
+            <button class="btn" type="submit">Create team</button>
+          </form>
+        </div>
+        <div class="panel">
+          <h3>Try it with sample data</h3>
+          <p class="note" style="margin-bottom:10px">Fills the workspace with full Rocket League teams at different ratings. This replaces what is here now.</p>
+          <form class="f" id="sampleForm">
+            <label class="fld">Teams
+              <select name="n"><option>4</option><option>6</option><option selected>8</option><option>12</option><option>16</option></select>
+            </label>
+            <div class="chips">
+              <button class="btn alt" type="submit">Load sample teams</button>
+              <button class="btn" type="button" data-act="demo">Build a demo bracket</button>
+            </div>
+          </form>
+        </div>
+        <details class="dd">
+          <summary>Add a custom game</summary>
+          <div class="dd-body">
+            <form class="f" id="gameForm">
+              <label class="fld">Game name<input name="name" required autocomplete="off"></label>
+              <label class="fld">Players per team<input name="ppt" type="number" min="1" max="10" value="4" required></label>
+              <button class="btn alt" type="submit">Add game</button>
+            </form>
+          </div>
+        </details>
+      </div>
+      <div>
+        <div class="mhead" style="margin-bottom:6px"><div><h2>Teams</h2><p id="teamsSub"></p></div></div>
+        <div id="teamGrid" class="teamgrid"></div>
+        <div class="sect" id="freeWrap"><h3>Players without a team</h3><div class="chips" id="freePlayers"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TOURNAMENTS ===================== -->
+  <section class="view" id="v-tournaments" hidden>
+    <div class="cols">
+      <div class="stack">
+        <div class="panel">
+          <h3>Create a tournament</h3>
+          <form class="f" id="tourForm">
+            <label class="fld">Name<input name="name" required autocomplete="off" placeholder="Spring Cup"></label>
+            <fieldset>
+              <legend>Format</legend>
+              <label class="fmtopt"><input type="radio" name="fmt" value="0" checked><span class="fn">Knockout bracket</span><span class="fd">Single elimination in a tree. Top seeds get byes when the field is uneven.</span></label>
+              <label class="fmtopt"><input type="radio" name="fmt" value="1"><span class="fn">Round robin</span><span class="fd">Everyone plays everyone, up to 16 teams. Matches are packed into time slots.</span></label>
+              <label class="fmtopt"><input type="radio" name="fmt" value="2"><span class="fn">Swiss</span><span class="fd">Fixed rounds. Each round pairs teams with close ratings and avoids rematches.</span></label>
+            </fieldset>
+            <label class="fld">Game<select name="game" data-games></select></label>
+            <div class="row2">
+              <label class="fld">Team limit<input name="cap" type="number" min="2" max="64" value="8"></label>
+              <label class="fld">Arenas<input name="stations" type="number" min="1" max="16" value="2"></label>
+            </div>
+            <label class="fld">Seeding sort
+              <select name="algo"><option value="0">Merge sort</option><option value="1">Quick sort</option></select>
+            </label>
+            <button class="btn" type="submit">Create tournament</button>
+          </form>
+        </div>
+      </div>
+      <div>
+        <div class="mhead" style="margin-bottom:6px"><div><h2>Tournaments</h2></div></div>
+        <div id="tourList"></div>
+        <div id="tourDetail" class="sect"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MATCHES / BRACKET ===================== -->
+  <section class="view" id="v-matches" hidden><div id="matchesBody"></div></section>
+
+  <!-- ===================== RANKINGS ===================== -->
+  <section class="view" id="v-rankings" hidden>
+    <div class="mhead">
+      <div><h2>Rankings</h2><p>Every team ranked by rating. Ratings use Elo and update after each result; ties go to the lower team number.</p></div>
+      <div class="seg" role="group" aria-label="Sorting algorithm">
+        <button data-algo="0" aria-pressed="true">Merge sort</button>
+        <button data-algo="1" aria-pressed="false">Quick sort</button>
+      </div>
+    </div>
+    <div id="rankBody"></div>
+  </section>
+
+  <!-- ===================== ENGINE ===================== -->
+  <section class="view" id="v-engine" hidden>
+    <div class="mhead"><div><h2>Engine</h2><p>The seven data structures live in a pure C module. The C++ application layer calls them through thin wrappers, and both are compiled for this page. Running as: <b id="runtime">starting</b>.</p></div></div>
+    <div class="tscroll"><table class="t" id="engineTable"></table></div>
+    <div class="sect two">
+      <div>
+        <h3>C++ application layer</h3>
+        <ul class="list" style="margin-top:8px">
+          <li><span class="grow"><span class="nm">User, Player, Admin</span><br><span class="muted">Abstract base with inheritance and a virtual describe()</span></span></li>
+          <li><span class="grow"><span class="nm">Game, Team, Match</span><br><span class="muted">Encapsulated state with validation</span></span></li>
+          <li><span class="grow"><span class="nm">Tournament</span><br><span class="muted">Abstract; Knockout, RoundRobin and Swiss override the format rules</span></span></li>
+          <li><span class="grow"><span class="nm">Leaderboard, ArenaSystem</span><br><span class="muted">Ranking through the C sort; controller, search and file handling</span></span></li>
+          <li><span class="grow"><span class="nm">ArenaError family</span><br><span class="muted">Duplicate, NotFound, InvalidOperation and Permission errors</span></span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Saved files</h3>
+        <p class="note" style="margin:6px 0 10px">The C++ layer writes these with file streams into a virtual folder, and the page keeps a copy in your browser.</p>
+        <div class="row2" style="grid-template-columns:1fr auto">
+          <select class="in" id="fileSel" aria-label="Saved file to view"></select>
+          <button class="btn alt sm" id="fileView" type="button">View file</button>
+        </div>
+        <pre class="pre" id="filePre" style="margin-top:10px">Choose a file to view it.</pre>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toasts" role="status" aria-live="polite"></div>
+
+<script>
+/*__ARENA_WASM_JS__*/
+</script>
+<script>
+/*__ARENA_JS_FALLBACK__*/
+</script>
+<script>
+(() => {
+'use strict';
+
+const ADMIN_ID = 1;
+const FILES = ['Players.dat','Teams.dat','Rankings.dat','Tournaments.dat','Matches.dat','Results.dat','History.dat'];
+const STORE_KEY = 'arenaforge.workspace.v1';
+const FMT = {
+  knockout:   { name:'Knockout bracket', desc:'Single elimination in a tree. Teams are seeded by rating, and byes go to the top seeds when the field is uneven.' },
+  roundrobin: { name:'Round robin',      desc:'Everyone plays everyone. Matches that share a team can’t overlap, so a conflict graph packs them into time slots.' },
+  swiss:      { name:'Swiss',            desc:'Fixed number of rounds. Each round the matchmaking heap pairs teams with close ratings and avoids repeat opponents.' }
+};
+const S = { mod:null, snap:null, tm:new Map(), um:new Map(), view:'teams', tid:null, admin:true, lbAlgo:0, group:null, open:{}, saveTimer:0, resetArm:0 };
+
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const actor = () => (S.admin ? ADMIN_ID : 0);
+const rnd = n => Math.round(n);
+const plural = (n, w, w2) => n + ' ' + (n === 1 ? w : (w2 || w + 's'));
+
+/* ---------- bridge to the C++ / C code (WebAssembly) ---------- */
+function call(name, types, args) {
+  return JSON.parse(S.mod.ccall(name, 'string', types || [], args || []));
+}
+const T_I = ['number'];
+
+function tname(id) {
+  if (id === -1) return 'Bye';
+  if (id === -2) return 'To be decided';
+  const t = S.tm.get(id);
+  return t ? t.name : '#' + id;
+}
+const cur = () => (S.snap && S.snap.tournaments.find(t => t.id === S.tid)) || null;
+
+function refresh() {
+  S.snap = call('aa_snapshot', T_I, [S.lbAlgo]);
+  S.tm = new Map(S.snap.teams.map(t => [t.id, t]));
+  S.um = new Map(S.snap.users.map(u => [u.id, u]));
+  if (S.tid == null || !S.snap.tournaments.some(t => t.id === S.tid)) {
+    const l = S.snap.tournaments;
+    S.tid = l.length ? l[l.length - 1].id : null;
+  }
+  render();
+}
+
+const ERR_TITLE = { PermissionError:'Admin only', DuplicateError:'Already exists', NotFoundError:'Not found',
+  InvalidOperationError:'Can’t do that', ArenaError:'Check the details', Error:'Something went wrong' };
+
+function toast(msg, kind, type) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (kind === 'error' ? ' error' : '');
+  el.innerHTML = (kind === 'error' ? '<b>' + esc(ERR_TITLE[type] || 'Error') + '</b>' : '') + '<span>' + esc(msg) + '</span>';
+  const box = $('#toasts');
+  while (box.children.length >= 3) box.firstElementChild.remove();
+  box.appendChild(el);
+  setTimeout(() => el.remove(), kind === 'error' ? 7000 : 3800);
+}
+
+/* run an API call; toast the outcome; refresh + autosave on success */
+function act(name, types, args, opts) {
+  const o = opts || {};
+  let r;
+  try { r = call(name, types, args); } catch (e) { toast(String(e && e.message || e), 'error', 'Error'); return null; }
+  if (!r.ok) { toast(r.error, 'error', r.type); return r; }
+  if (!o.quiet) toast(r.message);
+  if (!o.defer) { refresh(); saveSoon(); }
+  return r;
+}
+
+/* ---------- file handling: the C++ layer writes .dat files; we keep a copy ---------- */
+function readBundle() {
+  const r = call('aa_save');
+  if (!r.ok) throw new Error(r.error);
+  const b = {};
+  for (const f of FILES) b[f] = S.mod.FS.readFile('/data/' + f, { encoding:'utf8' });
+  return b;
+}
+function writeBundle(b) {
+  for (const f of FILES) if (typeof b[f] !== 'string') throw new Error('Backup is missing ' + f);
+  for (const f of FILES) S.mod.FS.writeFile('/data/' + f, b[f]);
+  return call('aa_load');
+}
+function saveSoon() {
+  clearTimeout(S.saveTimer);
+  S.saveTimer = setTimeout(() => {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(readBundle())); } catch (e) { /* storage unavailable: keep working */ }
+  }, 250);
+}
+function readStore() {
+  try { const t = localStorage.getItem(STORE_KEY); return t ? JSON.parse(t) : null; } catch (e) { return null; }
+}
+
+async function exportBackup() {
+  let text;
+  try { text = JSON.stringify({ app:'ArenaForge', version:1, files:readBundle() }, null, 1); }
+  catch (e) { return toast(e.message, 'error', 'Error'); }
+  const hosted = !!(window.claude && window.claude.use);          /* published page: only the platform can save files */
+  const dl = hosted ? await window.claude.use('downloads') : null;
+  if (hosted && !dl) return toast('Saving files isn’t available in this view. Your work is still kept in this browser, or open the standalone arenaforge.html to export a backup.', 'error', 'Error');
+  if (dl) {
+    try { await dl.save({ filename:'arenaforge-backup.json', data:text }); toast('Backup saved'); }
+    catch (e) { if (!e || e.code !== 'declined') toast('Could not save the backup: ' + ((e && (e.message || e.code)) || 'unknown error'), 'error', 'Error'); }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type:'application/json' }));
+  a.download = 'arenaforge-backup.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Backup downloaded');
+}
+async function importBackup(file) {
+  try {
+    const data = JSON.parse(await file.text());
+    if (!data || data.app !== 'ArenaForge' || !data.files) throw new Error('This is not an ArenaForge backup file.');
+    const r = writeBundle(data.files);
+    if (!r.ok) throw new Error(r.error);
+    S.tid = null; refresh(); saveSoon(); toast('Backup imported');
+  } catch (e) {
+    call('aa_reset'); refresh();
+    toast(e.message, 'error', 'ArenaError');
+  }
+}
+
+/* ---------- rendering helpers ---------- */
+const statusLabel = t => ({ registration:'Registration', inprogress:'In progress', completed:'Finished' }[t.status]);
+const statusTag = t => '<span class="tag ' + (t.status === 'inprogress' ? 'live' : t.status === 'completed' ? 'done' : '') + '">' + statusLabel(t) + '</span>';
+const empty = (h, p, btn) => '<div class="empty"><h3>' + h + '</h3><p>' + p + '</p>' + (btn || '') + '</div>';
+
+function render() {
+  if (!S.snap) return;
+  $$('#tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view === S.view ? 'page' : 'false'));
+  $$('.view').forEach(v => { v.hidden = v.id !== 'v-' + S.view; });
+  const t = cur();
+  $('#tabMatches').textContent = t && t.format !== 'knockout' ? 'Matches' : 'Bracket';
+  $('#adminSwitch').setAttribute('aria-checked', String(S.admin));
+  $('#adminLabel').textContent = S.admin ? 'Admin mode' : 'Player view';
+  $('#notice').hidden = S.admin;
+  fillGames();
+  ({ teams:renderTeams, tournaments:renderTournaments, matches:renderMatches, rankings:renderRankings, engine:renderEngine })[S.view]();
+}
+
+function fillGames() {
+  const ready = {};
+  S.snap.teams.forEach(t => { if (t.full) ready[t.game] = (ready[t.game] || 0) + 1; });
+  const best = S.snap.games.map(g => g.name).sort((a, b) => (ready[b] || 0) - (ready[a] || 0))[0];
+  $$('select[data-games]').forEach(sel => {
+    const keep = sel.dataset.touched ? sel.value : '';
+    sel.innerHTML = S.snap.games.map(g => '<option value="' + esc(g.name) + '">' + esc(g.name) + ' (' + g.ppt + ' per team)</option>').join('');
+    if (keep && S.snap.games.some(g => g.name === keep)) sel.value = keep;
+    else if (sel.closest('#tourForm') && best && ready[best]) sel.value = best;   /* default to the game with ready teams */
+  });
+}
+
+/* ---------- Teams ---------- */
+function renderTeams() {
+  const sn = S.snap;
+  const players = sn.users.filter(u => u.role === 'Player');
+  const free = players.filter(u => u.teamId === -1);
+  $('#teamsSub').textContent = plural(sn.teams.length, 'team') + ', ' + plural(players.length, 'player') + ' registered.';
+  const grid = $('#teamGrid');
+  if (!sn.teams.length) {
+    grid.innerHTML = empty('No teams yet', 'Register players and put them in teams, or build a demo bracket in one click to see how everything fits together.',
+      '<button class="btn" data-act="demo">Build a demo bracket</button>');
+  } else {
+    grid.innerHTML = sn.teams.map(t => {
+      const roster = t.members.map(id => {
+        const u = S.um.get(id);
+        return '<li title="' + esc(u.name) + '">' + esc(u.tag) + '<button class="x" data-act="leave" data-team="' + t.id + '" data-player="' + id + '" aria-label="Remove ' + esc(u.tag) + ' from ' + esc(t.name) + '">×</button></li>';
+      }).join('');
+      const open = t.ppt - t.members.length;
+      const add = open > 0
+        ? '<div class="addrow"><select id="join-' + t.id + '" aria-label="Player to add to ' + esc(t.name) + '">' +
+          (free.length ? free.map(u => '<option value="' + u.id + '">' + esc(u.tag) + ' (' + esc(u.name) + ')</option>').join('') : '<option value="">No free players</option>') +
+          '</select><button class="btn alt sm" data-act="join" data-team="' + t.id + '"' + (free.length ? '' : ' disabled') + '>Add</button></div>'
+        : '';
+      return '<article class="team"><div class="team-h"><div><div class="team-n">' + esc(t.name) + '</div><div class="team-g">' + esc(t.game) + '</div></div>' +
+        '<div class="team-r"><div class="num">' + rnd(t.rating) + '</div><small>' + plural(t.wins, 'win') + ', ' + plural(t.losses, 'loss', 'losses') + '</small></div></div>' +
+        '<div><span class="tag ' + (t.full ? 'full' : '') + '">' + (t.full ? 'Roster full' : t.members.length + ' of ' + t.ppt + ' players') + '</span></div>' +
+        '<ul class="roster">' + roster + '</ul>' + add + '</article>';
+    }).join('');
+  }
+  $('#freeWrap').hidden = !players.length;
+  $('#freePlayers').innerHTML = free.length ? free.map(u => '<span class="chip" title="' + esc(u.email) + '">' + esc(u.tag) + ', ' + esc(u.name) + '</span>').join('') : '<span class="muted">Everyone is on a team.</span>';
+}
+
+/* ---------- Tournaments ---------- */
+function renderTournaments() {
+  const sn = S.snap;
+  $('#tourList').innerHTML = sn.tournaments.length
+    ? sn.tournaments.map(t => '<button class="trow ' + (t.id === S.tid ? 'on' : '') + '" data-act="pick" data-tid="' + t.id + '"><span class="tn">' + esc(t.name) + '</span><span class="tm">' +
+        FMT[t.format].name + ' for ' + esc(t.game) + ', ' + t.registered.length + ' of ' + t.capacity + ' teams</span>' + statusTag(t) + '</button>').join('')
+    : empty('No tournaments yet', 'Create one with the form. Then register teams, start it, and the bracket appears.');
+  const t = cur();
+  const box = $('#tourDetail');
+  if (!t) { box.innerHTML = ''; return; }
+  const eligible = sn.teams.filter(x => x.game === t.game && x.full && !t.registered.includes(x.id) && !t.waitlist.includes(x.id));
+  const notFull = sn.teams.filter(x => x.game === t.game && !x.full);
+  const reg = t.status === 'registration';
+  let h = '<div class="mhead"><div><h2>' + esc(t.name) + '</h2><p>' + FMT[t.format].desc + '</p></div><div class="chips">' + statusTag(t) +
+    '<span class="tag">' + t.registered.length + ' of ' + t.capacity + ' places</span><span class="tag">' + plural(t.stations, 'arena') + '</span><span class="tag">' + (t.algo === 'merge' ? 'Merge' : 'Quick') + ' sort seeding</span></div></div>';
+  if (reg) {
+    h += '<div class="two"><div><h4>Registered teams</h4><ul class="list">' +
+      (t.registered.length ? t.registered.map(id => '<li><span class="grow"><span class="nm">' + esc(tname(id)) + '</span><br><span class="muted">Rating ' + rnd(S.tm.get(id).rating) + '</span></span><button class="btn alt sm" data-act="withdraw" data-tid="' + t.id + '" data-team="' + id + '">Withdraw</button></li>').join('') : '<li class="muted">No teams registered yet.</li>') +
+      '</ul></div><div><h4>Waitlist</h4><p class="note" style="margin-bottom:4px">When the tournament is full, teams queue here. If a team withdraws, the first in line moves up.</p><ul class="list">' +
+      (t.waitlist.length ? t.waitlist.map((id, i) => '<li><span class="pos">' + (i + 1) + '</span><span class="grow nm">' + esc(tname(id)) + '</span><button class="btn alt sm" data-act="withdraw" data-tid="' + t.id + '" data-team="' + id + '">Leave queue</button></li>').join('') : '<li class="muted">Nobody is waiting.</li>') +
+      '</ul></div></div>';
+    h += '<div class="sect"><h3>Teams you can register</h3><div class="toolbar"><button class="btn sm" data-act="regall" data-tid="' + t.id + '"' + (eligible.length ? '' : ' disabled') + '>Register all ' + eligible.length + '</button></div><ul class="list">' +
+      (eligible.length ? eligible.map(x => '<li><span class="grow"><span class="nm">' + esc(x.name) + '</span><br><span class="muted">Rating ' + rnd(x.rating) + '</span></span><button class="btn alt sm" data-act="reg" data-tid="' + t.id + '" data-team="' + x.id + '">Register</button></li>').join('') : '<li class="muted">No full ' + esc(t.game) + ' teams are free to enter. Build teams on the Teams tab.</li>') +
+      '</ul>' + (notFull.length ? '<p class="note" style="margin-top:10px">Not eligible yet, roster not full: ' + notFull.map(x => esc(x.name) + ' (' + x.members.length + ' of ' + x.ppt + ')').join(', ') + '.</p>' : '') + '</div>';
+    h += '<div class="sect"><button class="btn gold" data-act="start" data-tid="' + t.id + '"' + (t.registered.length >= 2 ? '' : ' disabled') + '>Start tournament and seed teams</button>' +
+      (t.registered.length < 2 ? '<p class="note" style="margin-top:8px">Register at least 2 teams to start.</p>' : '') + '</div>';
+  } else {
+    h += '<h3>Seeding</h3><p class="lead note" style="margin-bottom:10px">Teams were sorted by rating with the C ' + (t.algo === 'merge' ? 'merge sort' : 'quick sort') + ' when the tournament started.</p>' +
+      '<div class="tscroll"><table class="t"><thead><tr><th class="r rk">Seed</th><th>Team</th><th class="r">Rating at start</th></tr></thead><tbody>' +
+      t.seeds.map((s, i) => '<tr><td class="r num rk">' + (i + 1) + '</td><td class="tn">' + esc(tname(s.teamId)) + '</td><td class="r num">' + rnd(s.rating) + '</td></tr>').join('') + '</tbody></table></div>' +
+      '<div class="sect"><button class="btn" data-act="goto-matches">Open ' + (t.format === 'knockout' ? 'the bracket' : 'matches') + '</button></div>';
+  }
+  box.innerHTML = h;
+}
+
+/* ---------- Bracket + matches ---------- */
+function renderMatches() {
+  const t = cur();
+  const body = $('#matchesBody');
+  if (!t) { body.innerHTML = empty('Nothing to show yet', 'Create a tournament, register teams and start it. The bracket is drawn here.', '<button class="btn" data-act="goto-tournaments">Go to tournaments</button>'); return; }
+  let h = '<div class="mhead"><div><h2>' + esc(t.name) + '</h2><p>' + FMT[t.format].desc + '</p></div><div class="chips">' + statusTag(t) +
+    (t.status === 'inprogress' && t.totalRounds ? '<span class="tag">' + (t.format === 'knockout' ? esc((t.matches.find(m => m.round === t.round) || { roundName:'' }).roundName) : 'Round ' + t.round + ' of ' + t.totalRounds) + '</span>' : '') +
+    '<span class="tag">' + plural(t.registered.length, 'team') + '</span></div></div>';
+  if (t.status === 'registration') {
+    body.innerHTML = h + empty('This tournament hasn’t started', t.registered.length + ' of ' + t.capacity + ' places filled. Start it from the Tournaments tab to seed the teams and draw the first matches.', '<button class="btn" data-act="goto-tournaments">Go to tournaments</button>');
+    return;
+  }
+  if (t.status === 'completed' && t.champion >= 0) {
+    h += '<div class="champ"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3h12v2h3v3a4 4 0 0 1-4 4h-.3A6 6 0 0 1 13 14.9V17h3v2h1v2H7v-2h1v-2h3v-2.1A6 6 0 0 1 7.3 12H7a4 4 0 0 1-4-4V5h3zm0 4H5v1a2 2 0 0 0 1.2 1.8A6 6 0 0 1 6 8zm12 0v2.8A2 2 0 0 0 19 8V7z"/></svg><div><div class="cl">Champion</div><div class="cn">' + esc(tname(t.champion)) + '</div></div></div>';
+  }
+  const scheduled = t.matches.filter(m => m.status === 'scheduled');
+  if (t.status === 'inprogress') {
+    h += '<div class="toolbar"><button class="btn sm" data-act="sim" data-mode="next"' + (scheduled.length ? '' : ' disabled') + '>Play next match</button>' +
+      '<button class="btn alt sm" data-act="sim" data-mode="round"' + (scheduled.length ? '' : ' disabled') + '>Play this round</button>' +
+      '<button class="btn alt sm" data-act="sim" data-mode="all"' + (scheduled.length ? '' : ' disabled') + '>Play everything</button>' +
+      '<span class="note">Simulated results favour the higher rating but upsets happen.</span></div>';
+    h += '<div class="sect" style="margin-top:20px"><h3>Up next</h3>' + (scheduled.length
+      ? '<div class="tiles">' + scheduled.map(m => tile(m)).join('') + '</div>'
+      : '<p class="note">No matches are ready. Earlier matches need results first.</p>') + '</div>';
+  }
+  if (t.format === 'knockout') h += '<div class="sect"><h3>Bracket</h3>' + bracketHtml(t) + '</div>';
+  if (t.format !== 'knockout') h += '<div class="sect"><h3>Standings</h3>' + standingsHtml(t) + '</div>';
+  if (t.format === 'knockout') { if (t.history.length) h += '<div class="sect"><h3>Results</h3>' + matchListHtml(t, true) + '</div>'; }
+  else h += '<div class="sect"><h3>' + (t.format === 'swiss' ? 'Pairings by round' : 'Matches by time slot') + '</h3>' + matchListHtml(t) + '</div>';
+  h += '<div class="sect">' + detailsHtml(t) + '</div>';
+  body.innerHTML = h;
+}
+
+function tile(m) {
+  return '<form class="tile" id="tile-' + m.id + '" data-mid="' + m.id + '"><div class="tmeta">' + esc(m.roundName) + ', slot ' + (m.slot + 1) + '</div>' +
+    '<div class="tsides"><label class="side"><span class="sname">' + esc(tname(m.a)) + '</span><input type="number" name="a" min="0" step="1" inputmode="numeric" required aria-label="Score for ' + esc(tname(m.a)) + '"></label>' +
+    '<span class="vs">vs</span><label class="side"><span class="sname">' + esc(tname(m.b)) + '</span><input type="number" name="b" min="0" step="1" inputmode="numeric" required aria-label="Score for ' + esc(tname(m.b)) + '"></label></div>' +
+    '<button class="btn sm" type="submit">Report result</button></form>';
+}
+
+function bracketHtml(t) {
+  const root = t.bracket;
+  if (!root) return '<p class="note">The bracket is built when the tournament starts.</p>';
+  const W = 214, H = 84, GAP = 18, CG = 50, TOP = 26;
+  const byRef = new Map(t.matches.map(m => [m.ref, m]));
+  const seedOf = new Map(t.seeds.map((s, i) => [s.teamId, i + 1]));
+  const nodes = []; let leafRow = 0;
+  (function lay(n) {
+    if (!n.l) return null;
+    const L = lay(n.l), R = lay(n.r);
+    n.y = (!L && !R) ? (leafRow++) * (H + GAP) + H / 2 : (L.y + R.y) / 2;
+    n.x = (n.round - 1) * (W + CG);
+    nodes.push(n);
+    return n;
+  })(root);
+  const rounds = root.round;
+  const width = rounds * (W + CG) + (W - 40), height = leafRow * (H + GAP) - GAP + TOP;
+  let wires = '', cards = '', labels = '';
+  for (let r = 1; r <= rounds; r++) {
+    const name = (t.matches.find(m => m.round === r) || {}).roundName || (r === rounds ? 'Final' : r === rounds - 1 ? 'Semifinal' : r === rounds - 2 ? 'Quarterfinal' : 'Round of ' + Math.pow(2, rounds - r + 1));
+    labels += '<div class="rlabel" style="left:' + ((r - 1) * (W + CG)) + 'px">' + esc(name) + '</div>';
+  }
+  const side = (team, m, isA) => {
+    if (team === -2) return '<div class="trow2 tbd"><span class="sd"></span><span class="nmx">To be decided</span><span class="sx"></span></div>';
+    if (team === -1) return '<div class="trow2 tbd"><span class="sd"></span><span class="nmx">Bye</span><span class="sx"></span></div>';
+    let cls = '', sc = '';
+    if (m && m.status === 'completed') { cls = m.winner === team ? ' win' : ' lose'; sc = isA ? m.sa : m.sb; }
+    return '<div class="trow2' + cls + '"><span class="sd">' + (seedOf.get(team) || '') + '</span><span class="nmx" title="' + esc(tname(team)) + '">' + esc(tname(team)) + '</span><span class="sx num">' + sc + '</span></div>';
+  };
+  for (const n of nodes) {
+    const top = n.y - H / 2 + TOP;
+    [n.l, n.r].forEach(c => {
+      if (!c.l) return;
+      const x1 = c.x + W, y1 = c.y + TOP, x2 = n.x, y2 = n.y + TOP, xm = x1 + CG / 2;
+      wires += '<path class="' + (c.team >= 0 ? 'hot' : '') + '" d="M' + x1 + ' ' + y1 + 'H' + xm + 'V' + y2 + 'H' + x2 + '"/>';
+    });
+    const m = byRef.get(n.id);
+    const a = n.l.team, b = n.r.team;
+    const isBye = a === -1 || b === -1;
+    const live = m && m.status === 'scheduled';
+    const foot = m ? (m.status === 'completed' ? '<span>Final score</span><span>Slot ' + (m.slot + 1) + '</span>' : '<span><b>Up next</b></span><span>Slot ' + (m.slot + 1) + '</span>')
+                   : (isBye ? '<span>Bye, advances</span><span></span>' : '<span>Waiting</span><span></span>');
+    cards += '<div class="mcard' + (live ? ' live' : '') + (isBye ? ' bye' : '') + '"' + (live ? ' data-act="focus-tile" data-mid="' + m.id + '" role="button" tabindex="0" aria-label="Enter result: ' + esc(tname(a)) + ' vs ' + esc(tname(b)) + '"' : '') +
+      ' style="left:' + n.x + 'px;top:' + top + 'px;width:' + W + 'px;height:' + H + 'px"><div class="in2">' + side(a, m, true) + side(b, m, false) + '<div class="mfoot">' + foot + '</div></div></div>';
+  }
+  const cx = rounds * (W + CG), cy = root.y + TOP;
+  wires += '<path class="' + (root.team >= 0 ? 'hot' : '') + '" d="M' + (root.x + W) + ' ' + cy + 'H' + cx + '"/>';
+  cards += '<div class="cslot' + (root.team >= 0 ? ' on' : '') + '" style="left:' + cx + 'px;top:' + (cy - 28) + 'px;width:' + (W - 40) + 'px"><span class="cl">Champion</span><span class="cn">' + (root.team >= 0 ? esc(tname(root.team)) : 'To be decided') + '</span></div>';
+  return '<div class="bracket-wrap"><div class="bracket" style="width:' + width + 'px;height:' + height + 'px"><svg class="wires" width="' + width + '" height="' + height + '" aria-hidden="true">' + wires + '</svg>' + labels + cards + '</div></div>';
+}
+
+function standingsHtml(t) {
+  if (!t.standings.length) return '<p class="note">Standings appear once matches are played.</p>';
+  return '<div class="tscroll"><table class="t"><thead><tr><th class="r rk">Rank</th><th>Team</th><th class="r">Played</th><th class="r">Wins</th><th class="r">Losses</th><th class="r">Score diff</th><th class="r">Rating</th></tr></thead><tbody>' +
+    t.standings.map((s, i) => '<tr' + (i === 0 && t.status === 'completed' ? ' class="first"' : '') + '><td class="r num rk">' + (i + 1) + '</td><td class="tn">' + esc(tname(s.teamId)) + '</td><td class="r num">' + s.played + '</td><td class="r num">' + s.wins +
+      '</td><td class="r num">' + s.losses + '</td><td class="r num">' + (s.diff > 0 ? '+' : '') + s.diff + '</td><td class="r num">' + rnd((S.tm.get(s.teamId) || { rating:0 }).rating) + '</td></tr>').join('') + '</tbody></table></div>';
+}
+
+function matchListHtml(t, onlyDone) {
+  const groups = new Map();
+  const key = m => t.format === 'roundrobin' ? 'Slot ' + (m.slot + 1) : m.roundName;
+  t.matches.filter(m => !onlyDone || m.status === 'completed').forEach(m => { const k = key(m); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(m); });
+  if (!groups.size) return '<p class="note">No matches yet.</p>';
+  let h = '<div class="mlist">';
+  for (const [k, ms] of groups) {
+    h += '<div><h4>' + esc(k) + '</h4>' + ms.map(m => {
+      const done = m.status === 'completed';
+      return '<div class="mrow"><span class="a ' + (done ? (m.winner === m.a ? 'w' : 'l') : '') + '">' + esc(tname(m.a)) + '</span>' +
+        (done ? '<span class="sc num">' + m.sa + '\u2013' + m.sb + '</span>' : '<span class="pend">to play</span>') +
+        '<span class="b ' + (done ? (m.winner === m.b ? 'w' : 'l') : '') + '">' + esc(tname(m.b)) + '</span></div>';
+    }).join('');
+    if (t.format === 'swiss') {
+      const r = ms[0].round;
+      t.byes.filter(b => b.round === r).forEach(b => { h += '<div class="mrow"><span class="a">' + esc(tname(b.teamId)) + '</span><span class="pend">bye</span><span class="b muted">counts as a win</span></div>'; });
+    }
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+
+function detailsHtml(t) {
+  const dd = (key, title, sub, body) => '<details class="dd" data-key="' + key + '"' + (S.open[key] ? ' open' : '') + '><summary>' + title + '<small>' + sub + '</small></summary><div class="dd-body">' + body + '</div></details>';
+  let h = '';
+  if (t.format === 'swiss') h += dd('lab', 'Matchmaking heap', 'Cheapest pairings first', labHtml(t));
+  h += dd('sched', 'Scheduling graph', 'Conflicts and time slots', scheduleHtml(t));
+  h += dd('hist', 'Match history', plural(t.history.length, 'record') + ' in the linked list', historyHtml(t));
+  return h;
+}
+
+function labHtml(t) {
+  const mm = t.matchmaking;
+  if (!mm) return '<p class="note">Register at least 2 teams to see pairings.</p>';
+  const pr = p => '<tr><td class="tn">' + esc(tname(p.a)) + ' vs ' + esc(tname(p.b)) + '</td><td class="r num">' + rnd(p.gap) + '</td><td class="r num">' + (p.meetings ? '<span class="badge-r">' + p.meetings + (p.meetings === 1 ? ' time' : ' times') + '</span>' : 'never') + '</td><td class="r num">' + rnd(p.cost) + '</td></tr>';
+  const head = '<thead><tr><th>Pairing</th><th class="r">Rating gap</th><th class="r">Played before</th><th class="r">Fair score</th></tr></thead>';
+  return '<p class="note">Fair score is the rating gap plus 1000 for every previous meeting, so lower is better. All ' + mm.pairsInHeap + ' possible pairings go into a min-heap and come out cheapest first. This is what the matchmaker would pair right now from all registered teams.</p>' +
+    '<h4>Cheapest pairings in the heap</h4><div class="tscroll"><table class="t">' + head + '<tbody>' + mm.candidates.map(pr).join('') + '</tbody></table></div>' +
+    '<h4>Pairing the matchmaker would choose</h4><div class="tscroll"><table class="t">' + head + '<tbody>' + mm.pairing.map(pr).join('') + '</tbody></table></div>' +
+    (mm.unpaired >= 0 ? '<p class="note">' + esc(tname(mm.unpaired)) + ' would get a bye because the number of teams is odd.</p>' : '');
+}
+
+function scheduleHtml(t) {
+  if (!t.groups.length) return '<p class="note">Matches are scheduled when the tournament starts.</p>';
+  if (S.group == null || !t.groups.some(g => g.round === S.group)) S.group = (t.groups.find(g => g.round === t.round) || t.groups[0]).round;
+  const g = t.groups.find(x => x.round === S.group);
+  const ms = g.matchIds.map(id => t.matches.find(m => m.id === id));
+  let h = '<p class="note">Two matches conflict when they share a team, so they can’t run at the same time. The C engine colours the conflict graph so that conflicting matches get different colours. With ' + plural(t.stations, 'arena') + ', each colour group is then spread over as many time slots as it needs.</p>';
+  if (t.groups.length > 1) h += '<div class="seg" role="group" aria-label="Round">' + t.groups.map(x => '<button data-act="group" data-round="' + x.round + '" aria-pressed="' + (x.round === S.group) + '">' + esc(x.name) + '</button>').join('') + '</div>';
+  h += '<p><b class="num">' + ms.length + '</b> matches, <b class="num">' + g.edges.length + '</b> conflicts, <b class="num">' + g.colorCount + '</b> colours, <b class="num">' + g.slotCount + '</b> time slots.</p>';
+  h += g.edges.length ? graphSvg(g, ms) : '<p class="note">No conflicts in this group: no two matches share a team, so only the number of arenas limits the schedule.</p>';
+  const bySlot = new Map();
+  ms.forEach(m => { if (!bySlot.has(m.slot)) bySlot.set(m.slot, []); bySlot.get(m.slot).push(m); });
+  h += '<div class="slots">' + [...bySlot.keys()].sort((x, y) => x - y).map(s => '<div><h4>Slot ' + (s + 1) + '</h4>' + bySlot.get(s).map(m => '<p>' + esc(tname(m.a)) + ' vs ' + esc(tname(m.b)) + '</p>').join('') + '</div>').join('') + '</div>';
+  return h;
+}
+
+function graphSvg(g, ms) {
+  const n = ms.length;
+  if (n > 40) return '<p class="note">The graph has ' + n + ' vertices, too many to draw clearly. The slot table below shows the result.</p>';
+  const R = Math.min(190, 36 + n * 8), size = R * 2 + 56, c = size / 2;
+  const pos = i => [c + R * Math.cos(2 * Math.PI * i / n - Math.PI / 2), c + R * Math.sin(2 * Math.PI * i / n - Math.PI / 2)];
+  const col = k => 'hsl(' + ((k * 67 + 255) % 360) + ' 62% 48%)';
+  let s = '<svg class="graph" viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" role="img" aria-label="Conflict graph of ' + n + ' matches coloured into ' + g.colorCount + ' groups">';
+  g.edges.forEach(([u, v]) => { const a = pos(u), b = pos(v); s += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '"/>'; });
+  ms.forEach((m, i) => { const p = pos(i); s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="13" fill="' + col(g.colors[i]) + '"><title>' + esc(tname(m.a) + ' vs ' + tname(m.b)) + '</title></circle><text x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '">' + m.id + '</text>'; });
+  return s + '</svg><p class="note">Each circle is a match (numbered by match id). Lines join matches that share a team. Same colour means they can run together.</p>';
+}
+
+function historyHtml(t) {
+  if (!t.history.length) return '<p class="note">Completed matches are appended to the end of the linked list in the order they finish.</p>';
+  return '<p class="note">Each record is a node in a singly linked list, oldest at the head. The matchmaker walks this list to count previous meetings.</p><div class="tscroll"><table class="t"><thead><tr><th class="r rk">Node</th><th>Round</th><th>Match</th><th class="r">Score</th><th>Winner</th></tr></thead><tbody>' +
+    t.history.map((h, i) => '<tr><td class="r num rk">' + (i + 1) + '</td><td>' + esc((t.matches.find(m => m.id === h.matchId) || { roundName:h.round }).roundName) + '</td><td class="tn">' + esc(tname(h.a)) + ' vs ' + esc(tname(h.b)) + '</td><td class="r num">' + h.sa + '\u2013' + h.sb + '</td><td class="tn">' + esc(tname(h.winner)) + '</td></tr>').join('') + '</tbody></table></div>';
+}
+
+/* ---------- Rankings ---------- */
+function renderRankings() {
+  $$('#v-rankings .seg button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.algo) === S.lbAlgo)));
+  const lb = S.snap.leaderboard;
+  if (!lb.length) { $('#rankBody').innerHTML = empty('No teams to rank', 'Create teams or load sample data first.', '<button class="btn" data-act="demo">Build a demo bracket</button>'); return; }
+  const hi = Math.max(...lb.map(x => x.rating)), lo = Math.min(...lb.map(x => x.rating));
+  $('#rankBody').innerHTML = '<div class="tscroll"><table class="t"><thead><tr><th class="r rk">Rank</th><th>Team</th><th>Rating</th><th class="r">Wins</th><th class="r">Losses</th><th class="r">Win rate</th></tr></thead><tbody>' +
+    lb.map(x => { const g = x.wins + x.losses; return '<tr><td class="r num rk">' + x.rank + '</td><td class="tn">' + esc(x.name) + '</td><td><div style="display:flex;align-items:center;gap:10px"><span class="num" style="min-width:42px">' + rnd(x.rating) + '</span><span class="bar"><i style="width:' + (hi === lo ? 100 : 8 + 92 * (x.rating - lo) / (hi - lo)) + '%"></i></span></div></td><td class="r num">' + x.wins + '</td><td class="r num">' + x.losses + '</td><td class="r num">' + (g ? rnd(100 * x.wins / g) + '%' : 'none yet') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+}
+
+/* ---------- Engine ---------- */
+function renderEngine() {
+  const sn = S.snap;
+  const count = n => n.l ? 1 + count(n.l) + count(n.r) : 0;
+  const nodes = sn.tournaments.reduce((a, t) => a + (t.bracket ? count(t.bracket) : 0), 0);
+  const wait = sn.tournaments.reduce((a, t) => a + t.waitlist.length, 0);
+  const hist = sn.tournaments.reduce((a, t) => a + t.history.length, 0);
+  const heap = sn.tournaments.reduce((a, t) => a + (t.matchmaking ? t.matchmaking.pairsInHeap : 0), 0);
+  const edges = sn.tournaments.reduce((a, t) => a + t.groups.reduce((b, g) => b + g.edges.length, 0), 0);
+  const rows = [
+    ['1', 'Sorting', 'engine_1_sorting.c', 'Merge sort and quick sort rank the leaderboard, seed teams and order standings.', plural(sn.teams.length, 'team') + ' ranked with ' + sn.engine.leaderboardAlgo + ' sort'],
+    ['2', 'Min-heap', 'engine_2_heap.c', 'Priority queue of candidate pairings, cheapest Fair Matchmaking Score first.', plural(heap, 'pairing') + ' held in Swiss heaps'],
+    ['3', 'Binary tree', 'engine_3_tree.c', 'Knockout bracket: leaves are teams, internal nodes are matches, winners move up.', plural(nodes, 'match node') + ' in brackets'],
+    ['4', 'Hash table', 'engine_4_hashtable.c', 'Case-insensitive lookup of team names and gamer tags, and duplicate checks.', plural(sn.engine.hashTeams, 'team name') + ', ' + plural(sn.engine.hashPlayers, 'gamer tag')],
+    ['5', 'Queue', 'engine_5_queue.c', 'Waitlist when a tournament is full; the first team in line is promoted.', plural(wait, 'team') + ' waiting'],
+    ['6', 'Linked list', 'engine_6_linkedlist.c', 'Chronological match history, also used to count repeat opponents.', plural(hist, 'record') + ' stored'],
+    ['7', 'Graph', 'engine_7_graph.c', 'Conflict graph of matches plus greedy colouring to build the schedule.', plural(edges, 'conflict edge') + ' in current schedules']
+  ];
+  $('#engineTable').innerHTML = '<thead><tr><th class="r rk">Part</th><th>Structure</th><th>C source</th><th>What it does here</th><th>Right now</th></tr></thead><tbody>' +
+    rows.map(r => '<tr><td class="r num rk">' + r[0] + '</td><td class="tn">' + r[1] + '</td><td><code>' + r[2] + '</code></td><td>' + r[3] + '</td><td>' + esc(r[4]) + '</td></tr>').join('') + '</tbody>';
+  const sel = $('#fileSel');
+  if (!sel.options.length) sel.innerHTML = FILES.map(f => '<option>' + f + '</option>').join('');
+}
+
+/* ---------- simulate results ---------- */
+function simScore(m) {
+  const ra = (S.tm.get(m.a) || { rating:1000 }).rating, rb = (S.tm.get(m.b) || { rating:1000 }).rating;
+  const pa = 1 / (1 + Math.pow(10, (rb - ra) / 400));
+  const loser = Math.floor(Math.random() * 12);
+  return Math.random() < pa ? [13, loser] : [loser, 13];
+}
+function simulate(mode) {
+  let t = cur(); if (!t) return;
+  const tid = t.id; let played = 0, start = null;
+  for (let guard = 0; guard < 800; guard++) {
+    S.snap = call('aa_snapshot', T_I, [S.lbAlgo]);
+    S.tm = new Map(S.snap.teams.map(x => [x.id, x]));
+    t = S.snap.tournaments.find(x => x.id === tid);
+    if (!t || t.status !== 'inprogress') break;
+    const sched = t.matches.filter(m => m.status === 'scheduled');
+    if (!sched.length) break;
+    if (start == null) start = Math.min(...sched.map(m => m.round));
+    const m = sched[0];
+    if (mode === 'round' && m.round !== start) break;
+    const sc = simScore(m);
+    const r = call('aa_report_result', ['number','number','number','number','number'], [actor(), tid, m.id, sc[0], sc[1]]);
+    if (!r.ok) { toast(r.error, 'error', r.type); break; }
+    played++;
+    if (mode === 'next') { toast(r.message); break; }
+  }
+  refresh(); saveSoon();
+  if (played && mode !== 'next') toast('Played ' + plural(played, 'match', 'matches'));
+}
+
+/* ---------- demo ---------- */
+function demo() {
+  let r = act('aa_load_sample', T_I, [8], { quiet:true, defer:true }); if (!r || !r.ok) return;
+  r = act('aa_create_tournament', ['number','string','number','string','number','number','number'], [actor(), 'Spring Cup', 0, 'Rocket League', 8, 2, 0], { quiet:true, defer:true }); if (!r || !r.ok) { refresh(); return; }
+  const tid = r.id; S.tid = tid;
+  act('aa_register_all', ['number','number'], [actor(), tid], { quiet:true, defer:true });
+  r = act('aa_start_tournament', ['number','number'], [actor(), tid], { quiet:true, defer:true });
+  S.view = 'matches'; refresh(); saveSoon();
+  if (r && r.ok) toast('Demo bracket ready. Enter scores or use the play buttons.');
+}
+
+/* ---------- events ---------- */
+function go(view) { S.view = view; render(); window.scrollTo({ top:0 }); }
+
+document.addEventListener('click', e => {
+  const tab = e.target.closest('#tabs button'); if (tab) return go(tab.dataset.view);
+  const algo = e.target.closest('[data-algo]'); if (algo) { S.lbAlgo = Number(algo.dataset.algo); refresh(); return; }
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const d = el.dataset, tid = Number(d.tid), team = Number(d.team);
+  switch (d.act) {
+    case 'demo': demo(); break;
+    case 'pick': S.tid = tid; S.group = null; render(); break;
+    case 'goto-matches': go('matches'); break;
+    case 'goto-tournaments': go('tournaments'); break;
+    case 'join': { const sel = $('#join-' + team); if (sel && sel.value) act('aa_join_team', ['number','number'], [team, Number(sel.value)]); break; }
+    case 'leave': act('aa_leave_team', ['number','number'], [team, Number(d.player)]); break;
+    case 'reg': act('aa_register_team', ['number','number','number'], [actor(), tid, team]); break;
+    case 'regall': act('aa_register_all', ['number','number'], [actor(), tid]); break;
+    case 'withdraw': act('aa_withdraw_team', ['number','number','number'], [actor(), tid, team]); break;
+    case 'start': { const r = act('aa_start_tournament', ['number','number'], [actor(), tid]); if (r && r.ok) go('matches'); break; }
+    case 'sim': simulate(d.mode); break;
+    case 'group': S.group = Number(d.round); renderMatches(); break;
+    case 'focus-tile': { const f = $('#tile-' + d.mid); if (f) { f.scrollIntoView({ block:'center', behavior:'smooth' }); f.classList.remove('flash'); void f.offsetWidth; f.classList.add('flash'); const i = $('input', f); if (i) i.focus({ preventScroll:true }); } break; }
+  }
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.mcard[data-act]')) { e.preventDefault(); e.target.click(); }
+  if (e.key === 'Escape') $('#found').hidden = true;
+});
+document.addEventListener('change', e => { if (e.target.matches && e.target.matches('select[data-games]')) e.target.dataset.touched = '1'; });
+document.addEventListener('toggle', e => { const k = e.target && e.target.dataset && e.target.dataset.key; if (k) S.open[k] = e.target.open; }, true);
+
+const val = (f, n) => f.elements[n].value;
+document.addEventListener('submit', e => {
+  const f = e.target; e.preventDefault();
+  if (f.classList.contains('tile')) {
+    const a = parseInt(val(f, 'a'), 10), b = parseInt(val(f, 'b'), 10);
+    act('aa_report_result', ['number','number','number','number','number'], [actor(), S.tid, Number(f.dataset.mid), a, b]);
+    return;
+  }
+  switch (f.id) {
+    case 'playerForm': { const r = act('aa_register_player', ['string','string','string'], [val(f,'name'), val(f,'email'), val(f,'tag')]); if (r && r.ok) { f.reset(); $('input', f).focus(); } break; }
+    case 'teamForm': { const r = act('aa_create_team', ['string','string','number'], [val(f,'name'), val(f,'game'), Number(val(f,'rating'))]); if (r && r.ok) { f.elements.name.value = ''; f.elements.name.focus(); } break; }
+    case 'gameForm': { const r = act('aa_add_game', ['string','number'], [val(f,'name'), Number(val(f,'ppt'))]); if (r && r.ok) f.reset(); break; }
+    case 'sampleForm': S.tid = null; act('aa_load_sample', T_I, [Number(val(f,'n'))]); break;
+    case 'tourForm': {
+      const r = act('aa_create_tournament', ['number','string','number','string','number','number','number'],
+        [actor(), val(f,'name'), Number(f.elements.fmt.value), val(f,'game'), Number(val(f,'cap')), Number(val(f,'stations')), Number(val(f,'algo'))]);
+      if (r && r.ok) { S.tid = r.id; S.group = null; f.elements.name.value = ''; render(); }
+      break;
+    }
+    case 'searchForm': search($('#q').value.trim()); break;
+  }
+});
+
+function search(q) {
+  if (!q) return;
+  const rt = call('aa_search_team', ['string'], [q]), rp = call('aa_search_player', ['string'], [q]);
+  const box = $('#found'); let h = '<div class="hd"><h4>Search result</h4><button class="link" id="foundClose" type="button">Close</button></div>';
+  if (rt.found) { const t = S.tm.get(rt.id); h += '<div><b class="num">' + esc(t.name) + '</b><br><span class="muted">' + esc(t.game) + ', rating ' + rnd(t.rating) + ', ' + plural(t.wins, 'win') + ' and ' + plural(t.losses, 'loss', 'losses') + '</span></div><button class="btn alt sm" data-act-go="teams" type="button">Open teams</button>'; }
+  if (rp.found) { const u = S.um.get(rp.id); const tm = u.teamId >= 0 ? S.tm.get(u.teamId) : null; h += '<div><b class="num">' + esc(u.tag) + '</b><br><span class="muted">' + esc(u.name) + ', ' + (tm ? 'plays for ' + esc(tm.name) : 'no team yet') + '</span></div>'; }
+  if (!rt.found && !rp.found) h += '<p class="note">No exact match for “' + esc(q) + '”. Lookups use the full team name or gamer tag, ignoring capital letters.</p>';
+  else h += '<p class="note">Found with a hash table lookup in the C engine.</p>';
+  box.innerHTML = h; box.hidden = false;
+}
+$('#found').addEventListener('click', e => {
+  if (e.target.id === 'foundClose') $('#found').hidden = true;
+  if (e.target.dataset.actGo) { $('#found').hidden = true; go(e.target.dataset.actGo); }
+});
+
+$('#adminSwitch').addEventListener('click', () => { S.admin = !S.admin; render(); });
+$('#btnExport').addEventListener('click', () => { $('#menu').open = false; exportBackup(); });
+$('#btnImport').addEventListener('click', () => { $('#menu').open = false; $('#fileIn').click(); });
+$('#fileIn').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importBackup(f); });
+$('#btnReset').addEventListener('click', e => {
+  if (!S.resetArm) { S.resetArm = setTimeout(() => { S.resetArm = 0; e.target.textContent = 'Clear workspace'; }, 4000); e.target.textContent = 'Click again to clear everything'; return; }
+  clearTimeout(S.resetArm); S.resetArm = 0; e.target.textContent = 'Clear workspace'; $('#menu').open = false;
+  act('aa_reset'); S.tid = null; S.view = 'teams'; refresh();
+});
+$('#fileView').addEventListener('click', () => {
+  try { readBundle(); $('#filePre').textContent = S.mod.FS.readFile('/data/' + $('#fileSel').value, { encoding:'utf8' }); }
+  catch (e) { $('#filePre').textContent = String(e.message || e); }
+});
+document.addEventListener('click', e => { const m = $('#menu'); if (m.open && !m.contains(e.target)) m.open = false; });
+
+/* ---------- start ---------- */
+function fatal(msg) {
+  const box = $('#fatal');
+  box.hidden = false; box.className = 'fatal';
+  box.innerHTML = '<h3>The C engine couldn’t start</h3><p>ArenaForge runs its C and C++ code as WebAssembly, with a plain JavaScript build of the same sources as backup. This view allowed neither. Open the standalone arenaforge.html file from the download in a regular browser tab to use the full app.</p><p class="muted">' + esc(msg) + '</p>';
+  $$('.view').forEach(v => { v.hidden = true; });
+}
+/* WebAssembly first; if the page blocks it, run the JavaScript build of the same C/C++ sources */
+async function startRuntime() {
+  const why = [];
+  if (typeof WebAssembly !== 'undefined' && typeof ArenaModule === 'function') {
+    try { return { mod: await ArenaModule(), kind: 'WebAssembly' }; }
+    catch (e) { why.push('WebAssembly: ' + String(e && e.message || e).slice(0, 160)); }
+  } else { why.push('WebAssembly is not available'); }
+  if (typeof ArenaModuleJS === 'function') {
+    try { return { mod: await ArenaModuleJS(), kind: 'JavaScript (same C and C++ sources)' }; }
+    catch (e) { why.push('JavaScript build: ' + String(e && e.message || e).slice(0, 160)); }
+  }
+  throw new Error(why.join('. '));
+}
+async function boot() {
+  try { const rt = await startRuntime(); S.mod = rt.mod; S.runtime = rt.kind; }
+  catch (e) { return fatal(String(e && e.message || e)); }
+  $('#runtime').textContent = S.runtime;
+  try { S.mod.FS.mkdir('/data'); } catch (e) { /* already there */ }
+  const saved = readStore();
+  if (saved) { try { const r = writeBundle(saved); if (!r.ok) { call('aa_reset'); } } catch (e) { call('aa_reset'); } }
+  refresh();
+}
+boot();
+})();
+</script>
+</body>
+</html>
